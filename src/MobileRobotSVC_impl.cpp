@@ -47,7 +47,7 @@ RTC::RETURN_VALUE OGMapperSVC_impl::startMapping()
 
 RTC::RETURN_VALUE OGMapperSVC_impl::stopMapping()
 {
-	RTC::RETURN_VALUE result = RETVAL_OK;;
+	RTC::RETURN_VALUE result = RETVAL_OK;
 	if(m_pRTC->stopMapping() < 0) {
 		return RETVAL_INVALID_PRECONDITION;
 	}
