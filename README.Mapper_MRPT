@@ -163,10 +163,10 @@ Lang Type:
 		Range:           
 		Constraint:      
 
-		Name:             map_update
+		Name:             start_map_update_in_activated
 		Description:     
 		Type:            string
-		DefaultValue:     true
+		DefaultValue:     false
 		Unit:            
 		Range:           
 		Constraint:      
@@ -211,6 +211,30 @@ Lang Type:
 		Range:           
 		Constraint:      
 
+		Name:             init_pose_x
+		Description:     
+		Type:            double
+		DefaultValue:     0.0
+		Unit:            
+		Range:           
+		Constraint:      
+
+		Name:             init_pose_y
+		Description:     
+		Type:            double
+		DefaultValue:     0.0
+		Unit:            
+		Range:           
+		Constraint:      
+
+		Name:             init_pose_th
+		Description:     
+		Type:            double
+		DefaultValue:     0.0
+		Unit:            
+		Range:           
+		Constraint:      
+
 		Name:             log_dir
 		Description:     
 		Type:            string
@@ -223,6 +247,22 @@ Lang Type:
 		Description:     
 		Type:            string
 		DefaultValue:     log_enable
+		Unit:            
+		Range:           
+		Constraint:      
+
+		Name:             odometryTimeOut
+		Description:     
+		Type:            float
+		DefaultValue:     3.0
+		Unit:            
+		Range:           
+		Constraint:      
+
+		Name:             rangeTimeOut
+		Description:     
+		Type:            float
+		DefaultValue:     3.0
 		Unit:            
 		Range:           
 		Constraint:      

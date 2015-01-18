@@ -33,23 +33,30 @@ static const char* mapper_mrpt_spec[] =
     "conf.default.y_min", "-10.0",
     "conf.default.y_max", "10.0",
     "conf.default.resolution", "0.05",
-	"conf.default.init_pose_x", "0.0",
-	"conf.default.init_pose_y", "0.0",
-	"conf.default.init_pose_th", "0.0",
+    "conf.default.init_pose_x", "0.0",
+    "conf.default.init_pose_y", "0.0",
+    "conf.default.init_pose_th", "0.0",
     "conf.default.log_dir", "log_out",
     "conf.default.log_enable", "log_enable",
+    "conf.default.odometryTimeOut", "3.0",
+    "conf.default.rangeTimeOut", "3.0",
     // Widget
     "conf.__widget__.debug", "text",
-    "conf.__widget__.map_update", "spin",
+    "conf.__widget__.start_map_update_in_activated", "spin",
     "conf.__widget__.x_min", "spin",
     "conf.__widget__.x_max", "spin",
     "conf.__widget__.y_min", "spin",
     "conf.__widget__.y_max", "spin",
     "conf.__widget__.resolution", "spin",
+    "conf.__widget__.init_pose_x", "spin",
+    "conf.__widget__.init_pose_y", "spin",
+    "conf.__widget__.init_pose_th", "spin",
     "conf.__widget__.log_dir", "spin",
     "conf.__widget__.log_enable", "spin",
+    "conf.__widget__.odometryTimeOut", "text",
+    "conf.__widget__.rangeTimeOut", "text",
     // Constraints
-    "conf.__constraints__.map_update", "true,false",
+    "conf.__constraints__.start_map_update_in_activated", "true,false",
     "conf.__constraints__.log_enable", "true,false",
     ""
   };
@@ -66,6 +73,7 @@ Mapper_MRPT::Mapper_MRPT(RTC::Manager* manager)
     m_odometryIn("odometry", m_odometry),
     m_estimatedPoseOut("estimatedPose", m_estimatedPose),
     m_gridMapperPort("gridMapper")
+
     // </rtc-template>
 {
 }
@@ -110,11 +118,13 @@ RTC::ReturnCode_t Mapper_MRPT::onInitialize()
   bindParameter("y_min", m_y_min, "-10.0");
   bindParameter("y_max", m_y_max, "10.0");
   bindParameter("resolution", m_resolution, "0.05");
-  bindParameter("log_dir", m_log_dir, "log_out");
-  bindParameter("log_enable", m_log_enable, "log_enable");
   bindParameter("init_pose_x", m_init_pose_x, "0.0");
   bindParameter("init_pose_y", m_init_pose_y, "0.0");
   bindParameter("init_pose_th", m_init_pose_th, "0.0");
+  bindParameter("log_dir", m_log_dir, "log_out");
+  bindParameter("log_enable", m_log_enable, "log_enable");
+  bindParameter("odometryTimeOut", m_odometryTimeOut, "3.0");
+  bindParameter("rangeTimeOut", m_rangeTimeOut, "3.0");
   // </rtc-template>
   
   return RTC::RTC_OK;
@@ -174,6 +184,11 @@ RTC::ReturnCode_t Mapper_MRPT::onActivated(RTC::UniqueId ec_id)
   //m_pMapBuilder->setRangeSensorPosition(Position3D(0.2, 0, 0.3));
   //m_pMapBuilder->setRangeSensorRange(m_range_min, m_range_max);
   
+  m_Mode = MODE_NORMAL;
+  m_lastOdometryReceivedTime = coil::gettimeofday();
+  m_lastRangeReceivedTime = coil::gettimeofday();
+
+
   return RTC::RTC_OK;
 }
 
@@ -221,6 +236,7 @@ int32_t Mapper_MRPT::stopMapping() {
 
 RTC::ReturnCode_t Mapper_MRPT::onExecute(RTC::UniqueId ec_id)
 {
+  coil::TimeValue currentTime = coil::gettimeofday();
 
   if(m_odometryIn.isNew()) {
     m_odometryIn.read();
@@ -233,6 +249,14 @@ RTC::ReturnCode_t Mapper_MRPT::onExecute(RTC::UniqueId ec_id)
     ssr::Pose2D deltaPose = CurrentPose - m_OldPose;
     m_OldPose = CurrentPose;
     m_pMapBuilder->addPose(deltaPose);
+
+	m_lastOdometryReceivedTime = currentTime;
+	m_Mode = MODE_NORMAL;
+  }else{
+	  double duration = currentTime - m_lastOdometryReceivedTime;
+	  if(duration > m_odometryTimeOut && m_odometryTimeOut >0){
+		  m_Mode = MODE_ODOMETRY_TIME_OUT;
+	  }
   }
   
   if(m_rangeIn.isNew()) {
@@ -252,6 +276,16 @@ RTC::ReturnCode_t Mapper_MRPT::onExecute(RTC::UniqueId ec_id)
 		);
 	m_pMapBuilder->setRangeSensorPosition(pos);
     m_pMapBuilder->addRange(range);
+
+	m_lastRangeReceivedTime = currentTime;
+	if(m_Mode != MODE_ODOMETRY_TIME_OUT){
+	m_Mode = MODE_NORMAL;
+	}
+  }else{
+	  double duration = currentTime - m_lastRangeReceivedTime;
+	  if(duration > m_rangeTimeOut && m_rangeTimeOut >0){
+		  m_Mode = MODE_RANGE_TIME_OUT;
+  }
   }
   
   m_mapperMutex.lock();

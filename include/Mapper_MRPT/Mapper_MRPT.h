@@ -36,6 +36,14 @@
 #include "MapBuilder.h"
 using namespace RTC;
 
+enum MAPPER_MRPT_MODE{
+	MODE_NORMAL,
+	MODE_RANGE_TIME_OUT,
+	MODE_RANGE_INVALID_VALUE,
+	MODE_ODOMETRY_TIME_OUT,
+	MODE_ODOMETRY_INVALID_VALUE
+};
+
 /*!
  * @class Mapper_MRPT
  * @brief Mapper RTC using MRPT
@@ -288,7 +296,6 @@ class Mapper_MRPT
    * - DefaultValue: 0.0
    */
   double m_init_pose_th;
-
   /*!
    * 
    * - Name:  log_dir
@@ -301,6 +308,18 @@ class Mapper_MRPT
    * - DefaultValue: log_enable
    */
   std::string m_log_enable;
+  /*!
+   * 
+   * - Name:  odometryTimeOut
+   * - DefaultValue: 3.0
+   */
+  float m_odometryTimeOut;
+  /*!
+   * 
+   * - Name:  rangeTimeOut
+   * - DefaultValue: 3.0
+   */
+  float m_rangeTimeOut;
 
   // </rtc-template>
 
@@ -371,6 +390,14 @@ class Mapper_MRPT
 
   RTC::MAPPER_STATE getState();
   coil::Mutex m_mapperMutex;
+
+  coil::TimeValue m_lastOdometryReceivedTime;
+  coil::TimeValue m_lastRangeReceivedTime;
+
+  MAPPER_MRPT_MODE m_Mode;
+
+public:
+  MAPPER_MRPT_MODE getMode(){return m_Mode;}
 
 };
 

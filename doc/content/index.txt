@@ -107,14 +107,19 @@ The available configuration parameters are described below:
 Parameter        Data type          Default Value    Effect
 ================ ================== ================ ======
 debug            int                0                
-map_update       string             true             
+start_map_update_in_activated string             false            
 x_min            double             -10.0            
 x_max            double             10.0             
 y_min            double             -10.0            
 y_max            double             10.0             
 resolution       double             0.05             
+init_pose_x      double             0.0              
+init_pose_y      double             0.0              
+init_pose_th     double             0.0              
 log_dir          string             log_out          
 log_enable       string             log_enable       
+odometryTimeOut  float              3.0              
+rangeTimeOut     float              3.0              
 ================ ================== ================ ======
 
 Ports
