@@ -240,6 +240,11 @@ RTC::ReturnCode_t Mapper_MRPT::onExecute(RTC::UniqueId ec_id)
 
   if(m_odometryIn.isNew()) {
     m_odometryIn.read();
+	if(OdometryIsOutOfRange(m_odometry)){
+		m_Mode = MODE_ODOMETRY_INVALID_VALUE;
+		return RTC::RTC_OK;
+	}
+
     if(m_FirstExecution) {
       m_FirstExecution = false;
       m_OldPose = ssr::Pose2D(m_odometry.data.position.x, m_odometry.data.position.y, m_odometry.data.heading);
@@ -256,6 +261,7 @@ RTC::ReturnCode_t Mapper_MRPT::onExecute(RTC::UniqueId ec_id)
 	  double duration = currentTime - m_lastOdometryReceivedTime;
 	  if(duration > m_odometryTimeOut && m_odometryTimeOut >0){
 		  m_Mode = MODE_ODOMETRY_TIME_OUT;
+		  return RTC::RTC_OK;
 	  }
   }
   
@@ -278,13 +284,14 @@ RTC::ReturnCode_t Mapper_MRPT::onExecute(RTC::UniqueId ec_id)
     m_pMapBuilder->addRange(range);
 
 	m_lastRangeReceivedTime = currentTime;
-	if(m_Mode != MODE_ODOMETRY_TIME_OUT){
+	//if(m_Mode != MODE_ODOMETRY_TIME_OUT){
 	m_Mode = MODE_NORMAL;
-	}
+	//}
   }else{
 	  double duration = currentTime - m_lastRangeReceivedTime;
 	  if(duration > m_rangeTimeOut && m_rangeTimeOut >0){
 		  m_Mode = MODE_RANGE_TIME_OUT;
+		  return RTC::RTC_OK;
   }
   }
   
@@ -360,6 +367,16 @@ RTC::ReturnCode_t Mapper_MRPT::onRateChanged(RTC::UniqueId ec_id)
 */
 
 
+bool Mapper_MRPT::OdometryIsOutOfRange(TimedPose2D odometry){
+	if(odometry.data.position.x <  m_x_min || m_x_max < odometry.data.position.x){
+		return true;
+	}else if(odometry.data.position.y < m_y_min ||  m_y_max < odometry.data.position.y){
+		return true;
+	}else{
+		return false;
+	}
+}
+
 RTC::MAPPER_STATE Mapper_MRPT::getState() {
   if(m_pMapBuilder->isMapping()) {
     return MAPPER_MAPPING;
@@ -367,7 +384,6 @@ RTC::MAPPER_STATE Mapper_MRPT::getState() {
     return MAPPER_STOPPED;
   }
 }
-
 
 extern "C"
 {

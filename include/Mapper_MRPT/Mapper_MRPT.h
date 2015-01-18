@@ -382,6 +382,8 @@ class Mapper_MRPT
   ssr::Pose2D m_OldPose;
   ssr::Map m_Map;
 
+  bool OdometryIsOutOfRange(TimedPose2D odometry);
+
   public:
 
 	void getCurrentMap(RTC::OGMap_out map);

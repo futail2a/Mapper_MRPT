@@ -92,6 +92,9 @@ RTC::RETURN_VALUE OGMapperSVC_impl::requestCurrentBuiltMap(RTC::OGMap_out map)
 	}else if(m_pRTC->getMode() == MODE_RANGE_TIME_OUT){
 		result = RETVAL_RANGE_TIME_OUT;
 		return result;
+	}else if(m_pRTC->getMode() == MODE_ODOMETRY_INVALID_VALUE){
+		result = RETVAL_ODOMETRY_INVALID_VALUE;
+		return result;
 	}
 
 	return result;
